@@ -1,0 +1,54 @@
+{
+  "bookTitle": "Happy Birthday!",
+  "subtitle": "Những bức ảnh, thước phim và kỷ niệm dành riêng cho em.",
+  "coverKicker": "A BIRTHDAY BOOK FOR YOU",
+  "finalTitle": "HAPPY BIRTHDAY BÉ THƠM",
+  "finalMessage": "Chúc em tuổi mới thật rực rỡ và đạt được những điều mà em mong đợi trong năm nay nha. Mong những dự định, những ước mơ và cả những điều em đang âm thầm cố gắng rồi sẽ từng bước trở thành hiện thực. Chúc em có thật nhiều niềm vui, gặp được nhiều người tốt, có thêm nhiều trải nghiệm và những hành trình thật đáng nhớ. Những lúc mệt mỏi thì đừng cố gắng quá sức nha em, hãy nhớ rằng sức khỏe và sự bình yên của em vẫn luôn là điều quan trọng nhất. Mong tuổi 25 sẽ đối xử với em thật dịu dàng, cho em nhiều hơn những ngày vui, ít hơn những ngày buồn và thật nhiều lý do để mỉm cười. Cứ tự tin làm những điều em muốn, đi đến những nơi em muốn đến và trở thành phiên bản mà em mong muốn. Hy vọng sau này khi nhìn lại tuổi 25, em sẽ mỉm cười và nghĩ rằng: à, hóa ra đây là một trong những năm thật đẹp của mình. Happy Birthday bé Thơm! ❤️🎂✨",
+  "videoEvery": 5,
+  "chapters": [
+    {
+      "from": 1,
+      "to": 10,
+      "label": "CHAPTER 01 · HÔM NAY LÀ NGÀY CỦA EM",
+      "title": "Ngày thật đặc biệt"
+    },
+    {
+      "from": 11,
+      "to": 20,
+      "label": "CHAPTER 02 · NHỮNG KHOẢNH KHẮC ĐÁNG NHỚ",
+      "title": "Những kỷ niệm đẹp"
+    },
+    {
+      "from": 21,
+      "to": 30,
+      "label": "CHAPTER 03 · NHỮNG ĐIỀU TUYỆT VỜI Ở EM",
+      "title": "Điều tuyệt vời ở em"
+    },
+    {
+      "from": 31,
+      "to": 40,
+      "label": "CHAPTER 04 · LỜI CHÚC CHO TUỔI MỚI",
+      "title": "Điều ước tuổi mới"
+    },
+    {
+      "from": 41,
+      "to": 9999,
+      "label": "CHAPTER 05 · HAPPY BIRTHDAY",
+      "title": "Chúc em tuổi mới rực rỡ"
+    }
+  ],
+  "wishes": [
+    "Chúc em sinh nhật thật nhiều niềm vui và những điều bất ngờ dễ thương.",
+    "Mong tuổi mới luôn có thật nhiều tiếng cười, yêu thương và bình an.",
+    "Mỗi bức ảnh là một khoảnh khắc đáng nhớ trong hành trình thật đẹp của em.",
+    "Mong những điều em đang ước sẽ từng bước trở thành hiện thực.",
+    "Chúc em luôn khỏe mạnh, hạnh phúc và tự tin trên con đường mình lựa chọn.",
+    "Mong mỗi ngày của tuổi mới đều mang đến cho em một lý do để mỉm cười.",
+    "Chúc em gặp thật nhiều người tốt, những cơ hội đẹp và những hành trình đáng nhớ.",
+    "Tuổi mới rồi — cứ rực rỡ, cứ vui vẻ và cứ là chính mình nhé.",
+    "Cảm ơn em vì đã xuất hiện và tạo nên thật nhiều khoảnh khắc đáng yêu.",
+    "Happy Birthday! Mong năm nay sẽ là một trong những năm tuyệt vời nhất của em."
+  ],
+  "finalSubtitle": "Chúc em tuổi 25 thật rực rỡ 🌹",
+  "finalFooter": "WITH LOVE · ALWAYS"
+}
