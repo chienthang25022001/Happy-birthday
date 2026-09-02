@@ -169,6 +169,10 @@
     setText("coverSubtitle", config.subtitle || "");
 
     const sheetsWrap = document.getElementById("sheets");
+    const stableSpread = document.getElementById("stableSpread");
+    const stableLeft = document.getElementById("stableLeft");
+    const stableRight = document.getElementById("stableRight");
+    const stableFlipOverlay = document.getElementById("stableFlipOverlay");
     const cover = document.getElementById("cover");
     const bar = document.getElementById("progressBar");
     const timelineBar = document.getElementById("timelineBar");
@@ -321,6 +325,126 @@
       sheetsWrap.appendChild(sheet);
     }
 
+    // V17 STABLE SPREAD ENGINE
+    // The old 3D sheet stack stays in the DOM only as a preload/source cache.
+    // It is never painted. The visible book uses two ordinary 2D pages plus
+    // one lightweight 2D flip overlay, which avoids Safari's 3D compositor bug.
+    sheetsWrap.classList.add("legacy-sheet-cache");
+
+
+    function stablePageHtml(item) {
+      return createPage(item);
+    }
+
+    function mediaAt(index) {
+      if (index < 0 || index >= media.length) return null;
+      return media[index];
+    }
+
+    let stableTurn = 0;
+    let stableAnimating = false;
+    let stableLastDirection = 1;
+
+    function stableVisibleItems(turn) {
+      // turn 0 = cover spread.
+      if (turn <= 0) return { left: null, right: null, cover: true };
+      const base = (turn - 1) * 2;
+      return {
+        left: mediaAt(base),
+        right: mediaAt(base + 1),
+        cover: false
+      };
+    }
+
+    function hydrateStableMedia(root) {
+      if (!root) return;
+      root.querySelectorAll("img[data-src]").forEach((img) => {
+        const src = img.dataset.src;
+        if (src && img.getAttribute("src") !== src) img.src = src;
+        img.loading = "eager";
+        img.decoding = "async";
+      });
+
+      root.querySelectorAll("video[data-src]").forEach((video) => {
+        const src = video.dataset.src;
+        if (!src) return;
+        video.autoplay = true;
+        video.muted = true;
+        video.defaultMuted = true;
+        video.loop = true;
+        video.playsInline = true;
+        video.setAttribute("muted", "");
+        video.setAttribute("autoplay", "");
+        video.setAttribute("playsinline", "");
+        video.setAttribute("webkit-playsinline", "");
+        if (!video.getAttribute("src")) {
+          video.src = src;
+          try { video.load(); } catch {}
+        }
+        video.play().catch(() => {});
+      });
+    }
+
+    function stableCurrentVideoElements() {
+      return [
+        ...stableLeft?.querySelectorAll("video[data-src]") || [],
+        ...stableRight?.querySelectorAll("video[data-src]") || []
+      ];
+    }
+
+    function syncStableVideos() {
+      stableCurrentVideoElements().forEach((video) => {
+        video.muted = true;
+        video.defaultMuted = true;
+        video.loop = true;
+        video.playsInline = true;
+        video.play().catch(() => {});
+      });
+    }
+
+    function updateStableSpread(turn, animate = false, direction = 1) {
+      stableTurn = clamp(Math.round(turn), 0, sheets.length + 1);
+      const visible = stableVisibleItems(stableTurn);
+
+      if (visible.cover) {
+        stableSpread?.classList.add("is-cover");
+        if (stableLeft) stableLeft.innerHTML = `
+          <div class="memory-page stable-cover-left">
+            <div class="base-inner">
+              <span class="small">A BIRTHDAY BOOK</span>
+              <h2>Một tuổi mới.<br>Thật nhiều yêu thương.</h2>
+              <p>Nhấn Tiếp hoặc cuộn để bắt đầu.</p>
+            </div>
+          </div>`;
+        if (stableRight) stableRight.innerHTML = cover?.querySelector(".cover-front")?.outerHTML || `
+          <div class="memory-page"><div class="base-inner"><h2>Happy Birthday!</h2></div></div>`;
+      } else {
+        stableSpread?.classList.remove("is-cover");
+        if (stableLeft) stableLeft.innerHTML = stablePageHtml(visible.left);
+        if (stableRight) stableRight.innerHTML = stablePageHtml(visible.right);
+      }
+
+      hydrateStableMedia(stableLeft);
+      hydrateStableMedia(stableRight);
+      syncStableVideos();
+
+      if (animate && stableFlipOverlay && !reduce) {
+        stableAnimating = true;
+        stableLastDirection = direction >= 0 ? 1 : -1;
+        const source = direction >= 0 ? stableRight : stableLeft;
+        stableFlipOverlay.innerHTML = source?.innerHTML || "";
+        stableFlipOverlay.classList.remove("flip-forward", "flip-backward", "go");
+        stableFlipOverlay.classList.add(direction >= 0 ? "flip-forward" : "flip-backward");
+        void stableFlipOverlay.offsetWidth;
+        stableFlipOverlay.classList.add("go");
+        setTimeout(() => {
+          stableFlipOverlay.classList.remove("go", "flip-forward", "flip-backward");
+          stableFlipOverlay.innerHTML = "";
+          stableAnimating = false;
+        }, 420);
+      }
+    }
+
     /* =========================================================
        V5 STARTUP PRELOADER
        - All photo elements receive their real src before the story is shown.
@@ -463,43 +587,33 @@
     });
 
     const sheets = [...document.querySelectorAll(".sheet")];
-    const sheetCache = sheets.map((sheet) => ({
-      sheet,
-      shadows: [...sheet.querySelectorAll(".turn-shadow")],
-      stableState: ""
-    }));
-    const totalTurns = sheets.length + 1;
+    const sheetCache = [];
+    const totalTurns = Math.max(1, Math.ceil(media.length / 2) + 1);
 
     // V12: button/keyboard navigation. A click advances exactly one book turn,
     // while the existing mouse-wheel / trackpad scrolling remains fully available.
     let navAnimating = false;
 
     function currentRawPosition() {
-      const maxScroll = document.documentElement.scrollHeight - innerHeight;
-      if (!maxScroll) return 0;
-      return clamp((scrollY / maxScroll) * totalTurns, 0, totalTurns);
+      return stableTurn;
     }
 
-    function goToTurn(targetTurn) {
-      const maxScroll = document.documentElement.scrollHeight - innerHeight;
-      if (!maxScroll) return;
-      const turn = clamp(targetTurn, 0, totalTurns);
-      const top = (turn / totalTurns) * maxScroll;
+    function goToTurn(targetTurn, directionHint = 0) {
+      const turn = clamp(Math.round(targetTurn), 0, totalTurns);
+      if (turn === stableTurn || stableAnimating) return;
+      const direction = directionHint || (turn > stableTurn ? 1 : -1);
+      updateStableSpread(turn, true, direction);
       navAnimating = true;
-      window.scrollTo({ top, behavior: reduce ? "auto" : "smooth" });
-      window.setTimeout(() => { navAnimating = false; }, reduce ? 50 : 650);
+      window.setTimeout(() => { navAnimating = false; }, 430);
+      render();
     }
 
     function nextTurn() {
-      const raw = currentRawPosition();
-      // Always go forward, even when the user stopped halfway through a page turn.
-      goToTurn(Math.min(totalTurns, Math.floor(raw + 0.08) + 1));
+      goToTurn(Math.min(totalTurns, stableTurn + 1), 1);
     }
 
     function previousTurn() {
-      const raw = currentRawPosition();
-      // Always go backward, even when stopped halfway through a page turn.
-      goToTurn(Math.max(0, Math.ceil(raw - 0.08) - 1));
+      goToTurn(Math.max(0, stableTurn - 1), -1);
     }
 
     prevPageBtn?.addEventListener("click", previousTurn);
@@ -519,7 +633,7 @@
     });
 
     // Dynamic scroll length: enough room for each page turn without an enormous fixed document.
-    story.style.height = `${Math.max(900, totalTurns * 95)}vh`;
+    story.style.height = `${Math.max(700, totalTurns * 28)}vh`;
     stageCounter.textContent = `0 / ${sheets.length}`;
 
     /* =========================================================
@@ -882,195 +996,73 @@
     }
 
     function render() {
-      const maxScroll = document.documentElement.scrollHeight - innerHeight;
-      const p = maxScroll ? clamp(scrollY / maxScroll, 0, 1) : 0;
-      const raw = p * totalTurns;
+      const p = totalTurns ? clamp(stableTurn / totalTurns, 0, 1) : 0;
+      const raw = stableTurn;
       lastRawForPortals = raw;
 
-      bar.style.width = `${p * 100}%`;
-      timelineBar.style.width = `${p * 100}%`;
+      if (bar) bar.style.width = `${p * 100}%`;
+      if (timelineBar) timelineBar.style.width = `${p * 100}%`;
 
-      const coverTurn = ease(clamp(raw, 0, 1));
-      cover.style.transform = `rotateY(${-180 * coverTurn}deg)`;
-      cover.style.zIndex = coverTurn > 0.98 ? "20" : "150";
+      // The legacy cover and sheet stack are never painted in V17.
+      if (cover) cover.style.visibility = "hidden";
 
-      const closestSheetIndex = clamp(Math.round(raw) - 1, 0, Math.max(0, sheets.length - 1));
-      const closestDistance = sheets.length ? Math.abs(raw - (closestSheetIndex + 1)) : Infinity;
+      const visible = stableVisibleItems(stableTurn);
 
-      sheetCache.forEach((entry, index) => {
-        const { sheet, shadows } = entry;
-        const rawLocal = raw - (index + 1);
-        const local = clamp(rawLocal, 0, 1);
-        const isTurning = rawLocal > 0 && rawLocal < 1;
+      // V17.1: restore YEAR chapter effects.
+      // A year divider can be on either the left or the right page of a spread.
+      // V17 only inspected the right page first, so a year page on the left
+      // (for example 2021/2022 depending on media count) could be skipped.
+      const yearItem =
+        visible.left?.type === "year"
+          ? visible.left
+          : visible.right?.type === "year"
+            ? visible.right
+            : null;
 
-        // Far pages stay on a stable transform. Only the turning page gets
-        // continuously updated during scroll. This cuts style/compositor work.
-        if (!isTurning) {
-          const stableState = rawLocal >= 1 ? "past" : "future";
-          if (entry.stableState !== stableState) {
-            entry.stableState = stableState;
-            const past = stableState === "past";
-            sheet.style.transform = past ? "rotateY(-180deg)" : "rotateY(0deg)";
-            sheet.style.zIndex = past ? String(30 + index) : String(119 - index);
-            sheet.style.setProperty("--curl", "0");
-            shadows.forEach((shadow) => { shadow.style.opacity = "0"; });
-          }
-        } else {
-          entry.stableState = "turning";
-          const t = ease(local);
-          const lift = Math.sin(t * Math.PI);
-          sheet.style.transform = `translateZ(${lift * 34}px) rotateY(${-180 * t}deg) rotateZ(${lift * -1.5}deg)`;
-          sheet.style.zIndex = String(119 - index);
-          sheet.style.setProperty("--curl", String(lift));
-          shadows.forEach((shadow) => { shadow.style.opacity = String(lift * 0.62); });
-        }
+      const item = yearItem || visible.right || visible.left || null;
 
-        /* V7: only paint the sheets that can actually be seen.
-           Keeping 60-90 transformed page faces paintable is what caused Safari
-           to show blank pages / old pages bleeding through each other.
-
-           At any moment we keep at most three sheets paintable:
-           - the previous sheet (left page underneath)
-           - the current/turning sheet
-           - the next sheet (right page underneath)
-           Every image still keeps its real src, so scrolling never "unloads" a photo.
-        */
-        const focusIndex = sheets.length
-          ? clamp(Math.floor(Math.max(0, raw - 1)), 0, sheets.length - 1)
-          : 0;
-        const renderNear = Math.abs(index - focusIndex) <= 1;
-        const interactive = index === focusIndex && closestDistance < 1.15;
-
-        sheet.classList.toggle("render-near", renderNear);
-        sheet.classList.toggle("active", index === focusIndex);
-        sheet.classList.toggle("turning", isTurning && local > 0.001 && local < 0.999);
-        sheet.classList.toggle("state-turning", isTurning);
-        sheet.classList.toggle("state-past", !isTurning && rawLocal >= 1);
-        sheet.classList.toggle("state-future", !isTurning && rawLocal <= 0);
-        sheet.classList.toggle("is-interactive", interactive);
-
-        // Deterministic stacking: the newest past page is top-most on the left,
-        // the nearest future page is top-most on the right, and a turning page
-        // always sits above both. This prevents text from many pages overlapping.
-        if (isTurning) {
-          sheet.style.zIndex = "600";
-        } else if (rawLocal >= 1) {
-          sheet.style.zIndex = String(200 + index);
-        } else {
-          sheet.style.zIndex = String(500 - index);
-        }
-
-        // Refresh/decode only the tiny visible window. This is cheap and fixes
-        // Safari discarding an old decoded GPU texture under memory pressure.
-        if (renderNear && entry.lastNear !== true) {
-          entry.lastNear = true;
-          sheet.querySelectorAll(".photo-frame img").forEach((img) => {
-            const src = img.dataset.src;
-            if (src && !img.getAttribute("src")) img.src = src;
-            img.style.visibility = "visible";
-            img.style.opacity = "1";
-            if (img.complete && img.naturalWidth && typeof img.decode === "function") {
-              img.decode().catch(() => {});
-            }
-          });
-          void sheet.offsetWidth;
-        } else if (!renderNear) {
-          entry.lastNear = false;
-        }
-      });
-
-      syncVisibleVideos(raw);
-      refreshVideoPortals(raw);
-
-      const turn = Math.floor(raw);
-      const within = raw - turn;
-      const mediaIndex =
-        turn <= 0
-          ? -1
-          : clamp(
-              (turn - 1) * 2 + (within > 0.5 ? 1 : 0),
-              0,
-              config.media.length - 1,
-            );
-
-      const item = mediaIndex >= 0 ? config.media[mediaIndex] : null;
       let currentImage = 1;
-
       if (item?.type === "image") currentImage = item.number;
       else if (item?.type === "video") currentImage = item.afterImage || 1;
 
-
-      if (turn <= 0) {
-        chapterPill.textContent = "HAPPY BIRTHDAY · MỞ MÓN QUÀ";
-        pageCounter.textContent = "Bìa sinh nhật";
+      if (stableTurn <= 0) {
+        if (chapterPill) chapterPill.textContent = "HAPPY BIRTHDAY · MỞ MÓN QUÀ";
+        if (pageCounter) pageCounter.textContent = "Bìa sinh nhật";
       } else if (item?.type === "year") {
         const y = item.year || "MEMORIES";
-        chapterPill.textContent = `CHAPTER · ${y}`;
-        pageCounter.textContent = `Bắt đầu ${y}`;
+        if (chapterPill) chapterPill.textContent = `CHAPTER · ${y}`;
+        if (pageCounter) pageCounter.textContent = `Bắt đầu ${y}`;
         showYearPortal(y);
-
-        if (`YEAR-${y}` !== previousChapter) {
-          previousChapter = `YEAR-${y}`;
-          chapterPill.classList.remove("pop");
-          void chapterPill.offsetWidth;
-          chapterPill.classList.add("pop");
-          flash.classList.remove("go");
-          void flash.offsetWidth;
-          flash.classList.add("go");
-        }
-      } else {
+      } else if (item) {
         const chapter = chapterFor(currentImage);
         const y = item?.year ? ` · ${item.year}` : "";
-        chapterPill.textContent = `${chapter.label}${y}`;
-        pageCounter.textContent =
-          item?.type === "video"
-            ? `Video ${String(item.number).padStart(2, "0")}${y}`
-            : `Ảnh ${String(currentImage).padStart(2, "0")} / ${config.maxImages}${y}`;
-
-        if (chapter.label !== previousChapter && !String(previousChapter).startsWith("YEAR-")) {
-          previousChapter = chapter.label;
-          chapterPill.classList.remove("pop");
-          void chapterPill.offsetWidth;
-          chapterPill.classList.add("pop");
-
-          flash.classList.remove("go");
-          void flash.offsetWidth;
-          flash.classList.add("go");
-        } else if (String(previousChapter).startsWith("YEAR-")) {
-          previousChapter = chapter.label;
+        if (chapterPill) chapterPill.textContent = `${chapter.label}${y}`;
+        if (pageCounter) {
+          pageCounter.textContent =
+            item?.type === "video"
+              ? `Video ${String(item.number).padStart(2, "0")}${y}`
+              : `Ảnh ${String(currentImage).padStart(2, "0")} / ${config.maxImages}${y}`;
         }
 
-        const [background, color1, color2] =
-          chapter.palette || DEFAULT_PALETTES[0];
+        const [background, color1, color2] = chapter.palette || DEFAULT_PALETTES[0];
         document.body.style.background =
           `radial-gradient(circle at 18% 20%,${color1}55,transparent 30%),` +
           `radial-gradient(circle at 80% 78%,${color2}44,transparent 32%),${background}`;
       }
 
-      stageCounter.textContent = `${Math.min(Math.max(turn, 0), sheets.length)} / ${sheets.length}`;
-
-      // Keep the navigation controls in sync with wheel, trackpad and button movement.
-      if (prevPageBtn) prevPageBtn.disabled = raw <= 0.03;
-      if (nextPageBtn) nextPageBtn.disabled = raw >= totalTurns - 0.03;
-      if (navProgress) {
-        const current = Math.min(totalTurns, Math.max(0, Math.round(raw)));
-        navProgress.textContent = current <= 0 ? "BÌA" : `${current} / ${totalTurns}`;
+      if (stageCounter) {
+        stageCounter.textContent = `${Math.min(Math.max(stableTurn, 0), totalTurns)} / ${totalTurns}`;
       }
+      if (prevPageBtn) prevPageBtn.disabled = stableTurn <= 0;
+      if (nextPageBtn) nextPageBtn.disabled = stableTurn >= totalTurns;
+      if (navProgress) navProgress.textContent = stableTurn <= 0 ? "BÌA" : `${stableTurn} / ${totalTurns}`;
 
-      if (!reduce) {
-        const pulse = Math.sin((raw - Math.floor(raw)) * Math.PI);
-        bookWrap.style.transform =
-          `rotateX(${Math.sin(p * Math.PI) * 2.2}deg) ` +
-          `rotateY(${Math.sin(p * 11) * 2.6}deg) ` +
-          `scale(${1 + Math.sin(p * Math.PI) * 0.03}) ` +
-          `translateZ(${pulse * 26}px)`;
-      }
+      syncStableVideos();
 
-      if (p > 0.988 && !finaleShown) {
+      if (p > 0.985 && !finaleShown) {
         finaleShown = true;
         showEndingCelebration();
       }
-
       if (p < 0.965 && finaleShown) {
         finaleShown = false;
         birthdayFinale?.classList.remove("show");
@@ -1080,19 +1072,46 @@
     }
 
     let lastRawForPortals = 0;
-    let ticking = false;
-    addEventListener(
-      "scroll",
-      () => {
-        if (ticking) return;
-        ticking = true;
-        requestAnimationFrame(() => {
-          render();
-          ticking = false;
-        });
-      },
-      { passive: true },
-    );
+    let scrollAccumulator = 0;
+    let scrollLockUntil = 0;
+
+    addEventListener("wheel", (event) => {
+      if (document.body.classList.contains("intro-active") || finaleShown) return;
+      const now = performance.now();
+      if (now < scrollLockUntil) return;
+
+      scrollAccumulator += event.deltaY;
+      if (Math.abs(scrollAccumulator) < 70) return;
+
+      const direction = scrollAccumulator > 0 ? 1 : -1;
+      scrollAccumulator = 0;
+      scrollLockUntil = now + 460;
+      if (direction > 0) nextTurn();
+      else previousTurn();
+    }, { passive: true });
+
+    let touchStartY = null;
+    addEventListener("touchstart", (event) => {
+      touchStartY = event.touches?.[0]?.clientY ?? null;
+    }, { passive: true });
+
+    addEventListener("touchend", (event) => {
+      if (touchStartY == null || document.body.classList.contains("intro-active")) return;
+      const endY = event.changedTouches?.[0]?.clientY ?? touchStartY;
+      const dy = touchStartY - endY;
+      touchStartY = null;
+      if (Math.abs(dy) < 45) return;
+      if (dy > 0) nextTurn();
+      else previousTurn();
+    }, { passive: true });
+
+
+    document.addEventListener("click", (event) => {
+      const video = event.target.closest?.(".stable-page video");
+      if (!video) return;
+      video.muted = !video.muted;
+      if (video.paused) video.play().catch(() => {});
+    });
 
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
@@ -1100,13 +1119,13 @@
           if (!video.paused) video.pause();
         });
       } else {
-        syncVisibleVideos(lastRawForPortals || 0, true);
+        syncStableVideos();
       }
     });
 
     addEventListener(
       "resize",
-      () => refreshVideoPortals(lastRawForPortals || 0),
+      () => {},
       { passive: true },
     );
 
@@ -1481,6 +1500,7 @@
       if (event.key === "Enter" || event.key === " ") startIntro();
     });
 
+    updateStableSpread(0, false, 1);
     if (!giftIntro) revealBook();
 
     render();

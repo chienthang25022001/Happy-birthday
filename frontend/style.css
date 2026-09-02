@@ -1109,3 +1109,439 @@ body.finale-active .book-nav{
   .luxury-finale .finale-corner-rose{font-size:42px;opacity:.70}
   .luxury-finale .rose-tl,.luxury-finale .rose-bl{left:1.5vw}.luxury-finale .rose-tr,.luxury-finale .rose-br{right:1.5vw}
 }
+
+
+/* =========================================================
+   V17 STABLE SPREAD ENGINE
+   Safari-safe 2.5D book: only two static pages + one 2D flip overlay.
+========================================================= */
+
+html{scroll-behavior:auto!important}
+body{transition:background .35s ease!important}
+
+#sheets.legacy-sheet-cache{
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  overflow:hidden!important;
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+  left:-99999px!important;
+  top:-99999px!important;
+  transform:none!important;
+  perspective:none!important;
+}
+
+#cover{
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+
+.book-wrap,
+.book{
+  transform:none!important;
+  transform-style:flat!important;
+  -webkit-transform-style:flat!important;
+  perspective:none!important;
+  filter:none!important;
+}
+
+.book-stage{
+  perspective:none!important;
+}
+
+.stable-spread{
+  position:absolute;
+  inset:0;
+  z-index:120;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:0;
+  overflow:visible;
+  pointer-events:auto;
+}
+
+.stable-page{
+  position:relative;
+  min-width:0;
+  min-height:0;
+  background:var(--paper);
+  color:var(--ink);
+  overflow:hidden;
+  contain:layout paint style;
+  transform:none!important;
+  filter:none!important;
+  backface-visibility:visible!important;
+  -webkit-backface-visibility:visible!important;
+}
+
+.stable-left{
+  border-radius:22px 2px 2px 22px;
+  box-shadow:inset -22px 0 28px rgba(67,35,48,.08), -8px 12px 28px rgba(0,0,0,.18);
+}
+
+.stable-right{
+  border-radius:2px 22px 22px 2px;
+  box-shadow:inset 22px 0 28px rgba(67,35,48,.08), 8px 12px 28px rgba(0,0,0,.18);
+}
+
+.stable-page .memory-page,
+.stable-page .year-page,
+.stable-page .cover-front{
+  height:100%!important;
+  min-height:100%!important;
+  width:100%!important;
+  position:relative!important;
+  inset:auto!important;
+  transform:none!important;
+  filter:none!important;
+  backface-visibility:visible!important;
+  -webkit-backface-visibility:visible!important;
+}
+
+.stable-page .media-frame,
+.stable-page .photo-frame,
+.stable-page .video-frame,
+.stable-page img,
+.stable-page video,
+.stable-page .page-copy{
+  transform:none!important;
+  -webkit-transform:none!important;
+  filter:none!important;
+  animation:none!important;
+  transition:none!important;
+  backface-visibility:visible!important;
+  -webkit-backface-visibility:visible!important;
+}
+
+.stable-page img,
+.stable-page video{
+  opacity:1!important;
+  visibility:visible!important;
+}
+
+.stable-page .turn-shadow,
+.stable-page .paper-grain{
+  display:none!important;
+}
+
+.stable-flip-overlay{
+  position:absolute;
+  top:0;
+  bottom:0;
+  width:50%;
+  z-index:500;
+  pointer-events:none;
+  overflow:hidden;
+  background:var(--paper);
+  opacity:0;
+  transform-origin:center center;
+  will-change:transform,opacity;
+}
+
+.stable-flip-overlay.flip-forward{
+  right:0;
+  border-radius:2px 22px 22px 2px;
+  transform-origin:left center;
+}
+
+.stable-flip-overlay.flip-backward{
+  left:0;
+  border-radius:22px 2px 2px 22px;
+  transform-origin:right center;
+}
+
+.stable-flip-overlay.go.flip-forward{
+  animation:v17FlipForward .4s cubic-bezier(.22,.75,.28,1) both;
+}
+
+.stable-flip-overlay.go.flip-backward{
+  animation:v17FlipBackward .4s cubic-bezier(.22,.75,.28,1) both;
+}
+
+@keyframes v17FlipForward{
+  0%{opacity:.95;transform:scaleX(1) skewY(0deg);filter:brightness(1)}
+  55%{opacity:.82;transform:scaleX(.18) skewY(-1.2deg);filter:brightness(.82)}
+  100%{opacity:0;transform:scaleX(.02) skewY(0deg);filter:brightness(.72)}
+}
+
+@keyframes v17FlipBackward{
+  0%{opacity:.95;transform:scaleX(1) skewY(0deg);filter:brightness(1)}
+  55%{opacity:.82;transform:scaleX(.18) skewY(1.2deg);filter:brightness(.82)}
+  100%{opacity:0;transform:scaleX(.02) skewY(0deg);filter:brightness(.72)}
+}
+
+.stable-spread.is-cover .stable-right .cover-front{
+  display:grid!important;
+  position:relative!important;
+  inset:auto!important;
+  height:100%!important;
+  border-radius:2px 22px 22px 2px!important;
+}
+
+.stable-cover-left{
+  height:100%;
+}
+
+.book-spine{
+  z-index:450!important;
+  transform:translateX(-50%)!important;
+  filter:none!important;
+}
+
+.book-spine:after{animation:none!important}
+.book-shadow{filter:blur(18px)!important;transform:none!important}
+
+.chapter-pill,
+.cover-glass,
+.video-badge,
+.video-control{
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+
+/* Background decorations can remain, but no 3D interaction. */
+.aurora,
+.bokeh{
+  will-change:auto!important;
+}
+
+/* Finale stays completely out of layout until shown. */
+.birthday-finale.luxury-finale:not(.show){
+  display:none!important;
+}
+.birthday-finale.luxury-finale.show{
+  display:grid!important;
+}
+
+/* Stable video pages should be clickable directly; no transformed portal needed. */
+.video-portal-layer,
+.video-click-portal{
+  display:none!important;
+}
+
+.stable-page .video-frame,
+.stable-page .video-frame video{
+  pointer-events:auto!important;
+}
+
+@media(max-width:760px){
+  .stable-spread{
+    grid-template-columns:1fr;
+  }
+  .stable-left{
+    display:none!important;
+  }
+  .stable-right{
+    border-radius:18px!important;
+  }
+  .stable-flip-overlay{
+    width:100%!important;
+  }
+}
+
+
+/* =========================================================
+   V17.1 · RESTORED YEAR PORTAL EFFECTS
+   Keeps the Safari-safe 2.5D book, but restores the cinematic
+   full-screen chapter transition for 2021, 2022, 2023...
+========================================================= */
+.year-portal{
+  z-index:2500 !important;
+  pointer-events:none !important;
+}
+.year-portal.show{
+  opacity:1 !important;
+  visibility:visible !important;
+}
+.year-portal.show .year-portal-copy{
+  animation:v171YearCopyIn .72s cubic-bezier(.2,.85,.25,1) both !important;
+}
+.year-portal.show .year-portal-glow{
+  animation:v171YearGlow 1.5s ease-out both !important;
+}
+.year-portal.show .ring-a{
+  animation:v171RingA 1.55s cubic-bezier(.2,.75,.25,1) both !important;
+}
+.year-portal.show .ring-b{
+  animation:v171RingB 1.55s cubic-bezier(.2,.75,.25,1) both !important;
+}
+
+@keyframes v171YearCopyIn{
+  0%{opacity:0;transform:translateY(20px) scale(.88);filter:blur(9px)}
+  55%{opacity:1;transform:translateY(0) scale(1.035);filter:blur(0)}
+  100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}
+}
+@keyframes v171YearGlow{
+  0%{opacity:0;transform:scale(.55)}
+  45%{opacity:1;transform:scale(1.08)}
+  100%{opacity:.72;transform:scale(1)}
+}
+@keyframes v171RingA{
+  0%{opacity:0;transform:scale(.45) rotate(0deg)}
+  60%{opacity:.75;transform:scale(1.05) rotate(80deg)}
+  100%{opacity:.35;transform:scale(1) rotate(120deg)}
+}
+@keyframes v171RingB{
+  0%{opacity:0;transform:scale(1.4) rotate(0deg)}
+  60%{opacity:.65;transform:scale(.95) rotate(-95deg)}
+  100%{opacity:.3;transform:scale(1) rotate(-135deg)}
+}
+
+
+/* =========================================================
+   V17.2 · SHORT-VIEWPORT FINALE FIX
+   Prevents HAPPY BIRTHDAY / date / crown / divider from being
+   clipped off-screen on very wide, short browser windows.
+========================================================= */
+
+.birthday-finale.luxury-finale.show{
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch;
+}
+
+.luxury-finale .birthday-finale-copy{
+  box-sizing:border-box;
+  max-width:1180px;
+}
+
+/* Laptop windows / browser with a short usable viewport */
+@media (max-height:650px){
+  .birthday-finale.luxury-finale{
+    place-items:start center !important;
+  }
+
+  .luxury-finale .birthday-finale-copy{
+    width:min(1180px,96vw) !important;
+    min-height:100vh !important;
+    height:auto !important;
+    justify-content:flex-start !important;
+    padding:10px 22px 18px !important;
+    margin:0 auto !important;
+    overflow:visible !important;
+  }
+
+  .luxury-finale .finale-date{
+    margin:0 0 3px !important;
+    padding:5px 14px !important;
+    font-size:8px !important;
+    letter-spacing:.28em !important;
+  }
+
+  .luxury-finale .finale-crown{
+    margin:2px 0 4px !important;
+    font-size:10px !important;
+  }
+
+  .luxury-finale #finaleTitle{
+    font-size:clamp(42px,10vh,76px) !important;
+    line-height:.72 !important;
+    margin:0 !important;
+    letter-spacing:-.045em !important;
+    flex-shrink:0 !important;
+  }
+
+  .luxury-finale #finaleTitle .finale-name{
+    margin-top:.10em !important;
+    font-size:.44em !important;
+    line-height:1 !important;
+  }
+
+  .luxury-finale .finale-divider{
+    width:min(300px,70vw) !important;
+    margin:8px auto 2px !important;
+    gap:9px !important;
+  }
+
+  .luxury-finale .finale-divider b{
+    width:30px !important;
+    height:30px !important;
+    font-size:10px !important;
+  }
+
+  .luxury-finale #finaleSubtitle{
+    margin:5px 0 6px !important;
+    font-size:clamp(18px,5vh,28px) !important;
+    line-height:1.05 !important;
+  }
+
+  .luxury-finale .finale-message-wrap{
+    width:min(1100px,94vw) !important;
+    margin:0 auto !important;
+  }
+
+  .luxury-finale .finale-message{
+    padding:9px 18px !important;
+    font-size:10.5px !important;
+    line-height:1.35 !important;
+    max-height:88px !important;
+    overflow:auto !important;
+  }
+
+  .luxury-finale .finale-signature{
+    margin-top:8px !important;
+    padding-bottom:5px !important;
+    font-size:8px !important;
+  }
+
+  .luxury-finale .finale-age{
+    font-size:min(44vh,250px) !important;
+  }
+
+  .luxury-finale .finale-corner-rose{
+    font-size:34px !important;
+  }
+}
+
+/* Extremely short windows like the screenshot (~380px high). */
+@media (max-height:450px){
+  .luxury-finale .birthday-finale-copy{
+    padding:5px 18px 10px !important;
+  }
+
+  .luxury-finale .finale-date{
+    display:none !important;
+  }
+
+  .luxury-finale .finale-crown{
+    display:none !important;
+  }
+
+  .luxury-finale #finaleTitle{
+    font-size:clamp(34px,9.2vh,52px) !important;
+    line-height:.70 !important;
+  }
+
+  .luxury-finale #finaleTitle .finale-name{
+    font-size:.42em !important;
+    margin-top:.08em !important;
+  }
+
+  .luxury-finale .finale-divider{
+    margin:5px auto 1px !important;
+  }
+
+  .luxury-finale .finale-divider b{
+    width:26px !important;
+    height:26px !important;
+  }
+
+  .luxury-finale #finaleSubtitle{
+    font-size:20px !important;
+    margin:3px 0 5px !important;
+  }
+
+  .luxury-finale .finale-message{
+    font-size:10px !important;
+    line-height:1.25 !important;
+    padding:7px 14px !important;
+    max-height:74px !important;
+  }
+
+  .luxury-finale .finale-signature{
+    margin-top:5px !important;
+    font-size:7px !important;
+  }
+}

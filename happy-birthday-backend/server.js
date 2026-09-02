@@ -23,9 +23,15 @@ let sharp;
 let chokidar;
 let ffmpegStatic;
 
-try { sharp = require("sharp"); } catch {}
-try { chokidar = require("chokidar"); } catch {}
-try { ffmpegStatic = require("ffmpeg-static"); } catch {}
+try {
+  sharp = require("sharp");
+} catch {}
+try {
+  chokidar = require("chokidar");
+} catch {}
+try {
+  ffmpegStatic = require("ffmpeg-static");
+} catch {}
 
 const HOST = process.env.HOST || "0.0.0.0";
 const PORT = Number(process.env.PORT || 3000);
@@ -38,14 +44,44 @@ const OPT_IMAGES = path.join(OPT_ROOT, "images");
 const OPT_VIDEOS = path.join(OPT_ROOT, "videos");
 const MANIFEST_FILE = path.join(OPT_ROOT, "manifest.json");
 
+const PRODUCTION_MEDIA =
+  process.env.PRODUCTION_MEDIA === "1" ||
+  process.env.PRODUCTION_MEDIA === "true" ||
+  process.env.RENDER === "true";
+
 const IMAGE_EXTS = new Set([
-  ".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif", ".avif",
-  ".gif", ".bmp", ".tif", ".tiff", ".dng"
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".webp",
+  ".heic",
+  ".heif",
+  ".avif",
+  ".gif",
+  ".bmp",
+  ".tif",
+  ".tiff",
+  ".dng",
 ]);
 
 const VIDEO_EXTS = new Set([
-  ".mp4", ".mov", ".m4v", ".avi", ".mkv", ".webm", ".wmv", ".flv",
-  ".mpeg", ".mpg", ".mts", ".m2ts", ".3gp", ".3g2", ".ts", ".vob", ".ogv"
+  ".mp4",
+  ".mov",
+  ".m4v",
+  ".avi",
+  ".mkv",
+  ".webm",
+  ".wmv",
+  ".flv",
+  ".mpeg",
+  ".mpg",
+  ".mts",
+  ".m2ts",
+  ".3gp",
+  ".3g2",
+  ".ts",
+  ".vob",
+  ".ogv",
 ]);
 
 const MIME_TYPES = {
@@ -56,7 +92,7 @@ const MIME_TYPES = {
   ".webp": "image/webp",
   ".mp4": "video/mp4",
   ".svg": "image/svg+xml",
-  ".ico": "image/x-icon"
+  ".ico": "image/x-icon",
 };
 
 const state = {
@@ -69,7 +105,7 @@ const state = {
   reused: 0,
   skipped: 0,
   total: 0,
-  manifest: { items: [] }
+  manifest: { items: [] },
 };
 
 let processingPromise = null;
@@ -89,19 +125,21 @@ function json(res, status, data) {
     "Content-Type": "application/json; charset=utf-8",
     "Content-Length": Buffer.byteLength(body),
     "Cache-Control": "no-store",
-    "Access-Control-Allow-Origin": "*"
+    "Access-Control-Allow-Origin": "*",
   });
   res.end(body);
 }
 
 function safeName(value) {
-  return value
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-zA-Z0-9_-]+/g, "_")
-    .replace(/_+/g, "_")
-    .replace(/^_+|_+$/g, "")
-    .slice(0, 80) || "media";
+  return (
+    value
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9_-]+/g, "_")
+      .replace(/_+/g, "_")
+      .replace(/^_+|_+$/g, "")
+      .slice(0, 80) || "media"
+  );
 }
 
 function shortHash(value) {
@@ -117,28 +155,35 @@ async function ensureDirs() {
   await Promise.all([
     fsp.mkdir(RAW_ROOT, { recursive: true }),
     fsp.mkdir(OPT_IMAGES, { recursive: true }),
-    fsp.mkdir(OPT_VIDEOS, { recursive: true })
+    fsp.mkdir(OPT_VIDEOS, { recursive: true }),
   ]);
 }
 
 async function walk(dir, base = dir) {
   let entries;
-  try { entries = await fsp.readdir(dir, { withFileTypes: true }); }
-  catch { return []; }
+  try {
+    entries = await fsp.readdir(dir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
 
   const out = [];
   for (const entry of entries) {
     if (entry.name.startsWith(".")) continue;
     const absolute = path.join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...await walk(absolute, base));
-    else if (entry.isFile()) out.push({ absolute, relative: path.relative(base, absolute) });
+    if (entry.isDirectory()) out.push(...(await walk(absolute, base)));
+    else if (entry.isFile())
+      out.push({ absolute, relative: path.relative(base, absolute) });
   }
   return out;
 }
 
 async function readJson(file, fallback) {
-  try { return JSON.parse(await fsp.readFile(file, "utf8")); }
-  catch { return fallback; }
+  try {
+    return JSON.parse(await fsp.readFile(file, "utf8"));
+  } catch {
+    return fallback;
+  }
 }
 
 async function readStoryConfig() {
@@ -149,22 +194,30 @@ async function readStoryConfig() {
     finalMessage: "Chúc em tuổi 25 thật rực rỡ.",
     videoEvery: 5,
     chapters: [],
-    wishes: []
+    wishes: [],
   });
 }
 
 function spawnCommand(command, args, options = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { stdio: ["ignore", "ignore", "pipe"], ...options });
+    const child = spawn(command, args, {
+      stdio: ["ignore", "ignore", "pipe"],
+      ...options,
+    });
     let stderr = "";
-    child.stderr?.on("data", chunk => {
+    child.stderr?.on("data", (chunk) => {
       stderr += chunk.toString();
       if (stderr.length > 16000) stderr = stderr.slice(-16000);
     });
     child.on("error", reject);
-    child.on("close", code => {
+    child.on("close", (code) => {
       if (code === 0) resolve();
-      else reject(new Error(`${path.basename(command)} exited with code ${code}\n${stderr}`));
+      else
+        reject(
+          new Error(
+            `${path.basename(command)} exited with code ${code}\n${stderr}`,
+          ),
+        );
     });
   });
 }
@@ -175,7 +228,12 @@ async function imageWithSharp(input, output) {
   // animated:true keeps animated GIF/WebP readable; output remains WebP.
   const pipeline = sharp(input, { animated: true, failOn: "none" })
     .rotate()
-    .resize({ width: 1200, height: 1200, fit: "inside", withoutEnlargement: true })
+    .resize({
+      width: 1200,
+      height: 1200,
+      fit: "inside",
+      withoutEnlargement: true,
+    })
     .webp({ quality: 78, effort: 4 });
 
   await pipeline.toFile(output);
@@ -185,27 +243,68 @@ async function imageWithFFmpeg(input, output) {
   const tempPng = output.replace(/\.webp$/i, ".fallback.png");
   try {
     await spawnCommand(ffmpegPath(), [
-      "-y", "-hide_banner", "-loglevel", "error", "-i", input,
-      "-frames:v", "1",
-      "-vf", "scale=1600:1600:force_original_aspect_ratio=decrease",
-      tempPng
+      "-y",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-i",
+      input,
+      "-frames:v",
+      "1",
+      "-vf",
+      "scale=1600:1600:force_original_aspect_ratio=decrease",
+      tempPng,
     ]);
-    if (!sharp) throw new Error("sharp is required to finish fallback image conversion");
-    await sharp(tempPng).resize({ width: 1200, height: 1200, fit: "inside", withoutEnlargement: true }).webp({ quality: 78, effort: 4 }).toFile(output);
+    if (!sharp)
+      throw new Error("sharp is required to finish fallback image conversion");
+    await sharp(tempPng)
+      .resize({
+        width: 1200,
+        height: 1200,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .webp({ quality: 78, effort: 4 })
+      .toFile(output);
   } finally {
-    try { await fsp.unlink(tempPng); } catch {}
+    try {
+      await fsp.unlink(tempPng);
+    } catch {}
   }
 }
 
 async function imageWithSips(input, output) {
-  if (process.platform !== "darwin") throw new Error("sips fallback is macOS only");
+  if (process.platform !== "darwin")
+    throw new Error("sips fallback is macOS only");
   const tempJpg = output.replace(/\.webp$/i, ".sips.jpg");
   try {
-    await spawnCommand("sips", ["-s", "format", "jpeg", "-Z", "1600", input, "--out", tempJpg]);
-    if (!sharp) throw new Error("sharp is required to finish sips fallback image conversion");
-    await sharp(tempJpg).resize({ width: 1200, height: 1200, fit: "inside", withoutEnlargement: true }).webp({ quality: 78, effort: 4 }).toFile(output);
+    await spawnCommand("sips", [
+      "-s",
+      "format",
+      "jpeg",
+      "-Z",
+      "1600",
+      input,
+      "--out",
+      tempJpg,
+    ]);
+    if (!sharp)
+      throw new Error(
+        "sharp is required to finish sips fallback image conversion",
+      );
+    await sharp(tempJpg)
+      .resize({
+        width: 1200,
+        height: 1200,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .webp({ quality: 78, effort: 4 })
+      .toFile(output);
   } finally {
-    try { await fsp.unlink(tempJpg); } catch {}
+    try {
+      await fsp.unlink(tempJpg);
+    } catch {}
   }
 }
 
@@ -221,7 +320,9 @@ async function convertImage(input, output) {
       if (process.platform === "darwin") {
         await imageWithSips(input, temp);
       } else {
-        throw new Error(`${firstError.message}; fallback: ${secondError.message}`);
+        throw new Error(
+          `${firstError.message}; fallback: ${secondError.message}`,
+        );
       }
     }
   }
@@ -231,23 +332,46 @@ async function convertImage(input, output) {
 async function convertVideo(input, output) {
   const temp = output.replace(/\.mp4$/i, ".tmp.mp4");
   const args = [
-    "-y", "-hide_banner", "-loglevel", "warning",
-    "-i", input,
-    "-map", "0:v:0", "-map", "0:a?",
-    "-vf", "scale=1280:1280:force_original_aspect_ratio=decrease:force_divisible_by=2",
-    "-c:v", "libx264", "-preset", "veryfast", "-crf", "24",
-    "-pix_fmt", "yuv420p",
-    "-c:a", "aac", "-b:a", "128k", "-ar", "48000",
-    "-movflags", "+faststart",
-    "-max_muxing_queue_size", "2048",
-    temp
+    "-y",
+    "-hide_banner",
+    "-loglevel",
+    "warning",
+    "-i",
+    input,
+    "-map",
+    "0:v:0",
+    "-map",
+    "0:a?",
+    "-vf",
+    "scale=1280:1280:force_original_aspect_ratio=decrease:force_divisible_by=2",
+    "-c:v",
+    "libx264",
+    "-preset",
+    "veryfast",
+    "-crf",
+    "24",
+    "-pix_fmt",
+    "yuv420p",
+    "-c:a",
+    "aac",
+    "-b:a",
+    "128k",
+    "-ar",
+    "48000",
+    "-movflags",
+    "+faststart",
+    "-max_muxing_queue_size",
+    "2048",
+    temp,
   ];
 
   try {
     await spawnCommand(ffmpegPath(), args);
     await fsp.rename(temp, output);
   } catch (error) {
-    try { await fsp.unlink(temp); } catch {}
+    try {
+      await fsp.unlink(temp);
+    } catch {}
     throw error;
   }
 }
@@ -277,19 +401,23 @@ function sameSignature(oldItem, sig, outputPath) {
     oldItem &&
     oldItem.sourceMtimeMs === sig.mtimeMs &&
     oldItem.sourceSize === sig.size &&
-    fs.existsSync(outputPath)
+    fs.existsSync(outputPath),
   );
 }
 
 async function cleanOrphans(validOutputNames) {
   for (const dir of [OPT_IMAGES, OPT_VIDEOS]) {
     let names = [];
-    try { names = await fsp.readdir(dir); } catch {}
+    try {
+      names = await fsp.readdir(dir);
+    } catch {}
     for (const name of names) {
       if (name.startsWith(".")) continue;
       const absolute = path.join(dir, name);
       if (!validOutputNames.has(absolute)) {
-        try { await fsp.unlink(absolute); } catch {}
+        try {
+          await fsp.unlink(absolute);
+        } catch {}
       }
     }
   }
@@ -311,12 +439,16 @@ async function rebuildMedia(reason = "manual") {
     log(`Media scan started (${reason})`);
 
     const previous = await readJson(MANIFEST_FILE, { items: [] });
-    const previousBySource = new Map((previous.items || []).map(item => [item.source, item]));
+    const previousBySource = new Map(
+      (previous.items || []).map((item) => [item.source, item]),
+    );
 
-    const allFiles = (await walk(RAW_ROOT)).sort((a, b) => naturalCompare(a.relative, b.relative));
+    const allFiles = (await walk(RAW_ROOT)).sort((a, b) =>
+      naturalCompare(a.relative, b.relative),
+    );
     const supported = allFiles
-      .map(file => ({ ...file, type: classify(file) }))
-      .filter(file => file.type);
+      .map((file) => ({ ...file, type: classify(file) }))
+      .filter((file) => file.type);
 
     state.total = supported.length;
     state.skipped = allFiles.length - supported.length;
@@ -338,9 +470,12 @@ async function rebuildMedia(reason = "manual") {
         state.reused++;
         log(`[${index + 1}/${supported.length}] cache: ${file.relative}`);
       } else {
-        log(`[${index + 1}/${supported.length}] convert ${file.type}: ${file.relative}`);
+        log(
+          `[${index + 1}/${supported.length}] convert ${file.type}: ${file.relative}`,
+        );
         try {
-          if (file.type === "image") await convertImage(file.absolute, outputPath);
+          if (file.type === "image")
+            await convertImage(file.absolute, outputPath);
           else await convertVideo(file.absolute, outputPath);
           state.converted++;
         } catch (error) {
@@ -356,7 +491,7 @@ async function rebuildMedia(reason = "manual") {
         sourceMtimeMs: sig.mtimeMs,
         sourceSize: sig.size,
         output: outputRel,
-        fileName: path.basename(outputPath)
+        fileName: path.basename(outputPath),
       });
     }
 
@@ -365,24 +500,32 @@ async function rebuildMedia(reason = "manual") {
     const manifest = {
       generatedAt: new Date().toISOString(),
       sourceFolder: "media-original",
-      items
+      items,
     };
-    await fsp.writeFile(MANIFEST_FILE, JSON.stringify(manifest, null, 2), "utf8");
+    await fsp.writeFile(
+      MANIFEST_FILE,
+      JSON.stringify(manifest, null, 2),
+      "utf8",
+    );
     state.manifest = manifest;
     state.currentFile = null;
     state.processing = false;
     state.lastFinishedAt = new Date().toISOString();
-    log(`Media ready: ${items.filter(x => x.type === "image").length} images, ${items.filter(x => x.type === "video").length} videos.`);
+    log(
+      `Media ready: ${items.filter((x) => x.type === "image").length} images, ${items.filter((x) => x.type === "video").length} videos.`,
+    );
     return manifest;
-  })().catch(error => {
-    state.processing = false;
-    state.currentFile = null;
-    state.lastError = error.message;
-    log("Media processing error:", error.message);
-    throw error;
-  }).finally(() => {
-    processingPromise = null;
-  });
+  })()
+    .catch((error) => {
+      state.processing = false;
+      state.currentFile = null;
+      state.lastError = error.message;
+      log("Media processing error:", error.message);
+      throw error;
+    })
+    .finally(() => {
+      processingPromise = null;
+    });
 
   return processingPromise;
 }
@@ -428,12 +571,12 @@ function buildMediaTimeline(images, videos, config) {
         year: key,
         title: `Kỷ niệm ${key}`,
         countImages: group.images.length,
-        countVideos: group.videos.length
+        countVideos: group.videos.length,
       });
     }
 
     if (!group.images.length) {
-      group.videos.forEach(v => timeline.push(v));
+      group.videos.forEach((v) => timeline.push(v));
       continue;
     }
 
@@ -454,33 +597,60 @@ function buildMediaTimeline(images, videos, config) {
   return timeline.map((item, index) => ({ ...item, timelineIndex: index }));
 }
 
+async function loadExistingManifest() {
+  const manifest = await readJson(MANIFEST_FILE, { items: [] });
+
+  if (!Array.isArray(manifest.items)) {
+    manifest.items = [];
+  }
+
+  state.manifest = manifest;
+  state.total = manifest.items.length;
+  state.lastFinishedAt = manifest.generatedAt || new Date().toISOString();
+
+  log(`Loaded existing optimized manifest: ${manifest.items.length} items`);
+  return manifest;
+}
+
 async function createStoryPayload() {
-  // First request waits for any active conversion, so the book never sees half-built media.
-  if (processingPromise) await processingPromise;
-  else if (!state.manifest.items?.length) await rebuildMedia("first API request");
+  // LOCAL: wait for conversion if one is active.
+  // RENDER/PRODUCTION: load pre-generated media-optimized/manifest.json only.
+  if (processingPromise) {
+    await processingPromise;
+  } else if (!state.manifest.items?.length) {
+    if (PRODUCTION_MEDIA) {
+      await loadExistingManifest();
+    } else {
+      await rebuildMedia("first API request");
+    }
+  }
 
   const config = await readStoryConfig();
   const items = state.manifest.items || [];
   let imageN = 0;
   let videoN = 0;
 
-  const images = items.filter(x => x.type === "image").map(item => ({
-    id: `image-${++imageN}`,
-    type: "image",
-    year: mediaYear(item.source),
-    fileName: item.source,
-    url: `/media-optimized/${encodeURI(item.output).replace(/#/g, "%23")}`,
-    order: imageN
-  }));
+  const images = items
+    .filter((x) => x.type === "image")
+    .map((item) => ({
+      id: `image-${++imageN}`,
+      type: "image",
+      year: mediaYear(item.source),
+      fileName: item.source,
+      url: `/media-optimized/${encodeURI(item.output).replace(/#/g, "%23")}`,
+      order: imageN,
+    }));
 
-  const videos = items.filter(x => x.type === "video").map(item => ({
-    id: `video-${++videoN}`,
-    type: "video",
-    year: mediaYear(item.source),
-    fileName: item.source,
-    url: `/media-optimized/${encodeURI(item.output).replace(/#/g, "%23")}`,
-    order: videoN
-  }));
+  const videos = items
+    .filter((x) => x.type === "video")
+    .map((item) => ({
+      id: `video-${++videoN}`,
+      type: "video",
+      year: mediaYear(item.source),
+      fileName: item.source,
+      url: `/media-optimized/${encodeURI(item.output).replace(/#/g, "%23")}`,
+      order: videoN,
+    }));
 
   return {
     ...config,
@@ -488,16 +658,20 @@ async function createStoryPayload() {
     counts: { images: images.length, videos: videos.length },
     images,
     videos,
-    media: buildMediaTimeline(images, videos, config)
+    media: buildMediaTimeline(images, videos, config),
   };
 }
 
 function resolveInside(root, urlPath, prefix) {
   let rel;
-  try { rel = decodeURIComponent(urlPath.slice(prefix.length)); }
-  catch { return null; }
+  try {
+    rel = decodeURIComponent(urlPath.slice(prefix.length));
+  } catch {
+    return null;
+  }
   rel = rel.replace(/\\/g, "/");
-  if (!rel || rel.startsWith("/") || rel.includes("../") || rel.includes("\0")) return null;
+  if (!rel || rel.startsWith("/") || rel.includes("../") || rel.includes("\0"))
+    return null;
   const abs = path.resolve(root, rel);
   const base = path.resolve(root);
   if (abs !== base && !abs.startsWith(base + path.sep)) return null;
@@ -506,8 +680,11 @@ function resolveInside(root, urlPath, prefix) {
 
 async function serveFile(req, res, filePath, cache = true) {
   let stat;
-  try { stat = await fsp.stat(filePath); }
-  catch { return json(res, 404, { error: "File not found" }); }
+  try {
+    stat = await fsp.stat(filePath);
+  } catch {
+    return json(res, 404, { error: "File not found" });
+  }
   if (!stat.isFile()) return json(res, 404, { error: "File not found" });
 
   const ext = path.extname(filePath).toLowerCase();
@@ -520,15 +697,25 @@ async function serveFile(req, res, filePath, cache = true) {
 
   if (range) {
     const match = /^bytes=(\d*)-(\d*)$/.exec(range);
-    if (!match) { res.writeHead(416, { "Content-Range": `bytes */${stat.size}` }); return res.end(); }
+    if (!match) {
+      res.writeHead(416, { "Content-Range": `bytes */${stat.size}` });
+      return res.end();
+    }
     const start = match[1] ? Number(match[1]) : 0;
     const end = match[2] ? Number(match[2]) : stat.size - 1;
-    if (!Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end >= stat.size || start > end) {
-      res.writeHead(416, { "Content-Range": `bytes */${stat.size}` }); return res.end();
+    if (
+      !Number.isFinite(start) ||
+      !Number.isFinite(end) ||
+      start < 0 ||
+      end >= stat.size ||
+      start > end
+    ) {
+      res.writeHead(416, { "Content-Range": `bytes */${stat.size}` });
+      return res.end();
     }
     res.writeHead(206, {
       "Content-Range": `bytes ${start}-${end}/${stat.size}`,
-      "Content-Length": end - start + 1
+      "Content-Length": end - start + 1,
     });
     return fs.createReadStream(filePath, { start, end }).pipe(res);
   }
@@ -542,7 +729,7 @@ async function serveFrontend(req, res, pathname) {
     "/": "index.html",
     "/index.html": "index.html",
     "/style.css": "style.css",
-    "/app.js": "app.js"
+    "/app.js": "app.js",
   };
   const file = routes[pathname];
   if (!file) return false;
@@ -558,7 +745,7 @@ async function requestHandler(req, res) {
     res.writeHead(204, {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type"
+      "Access-Control-Allow-Headers": "Content-Type",
     });
     return res.end();
   }
@@ -571,6 +758,13 @@ async function requestHandler(req, res) {
       return json(res, 200, { ...state, manifest: undefined });
     }
     if (req.method === "POST" && pathname === "/api/rebuild-media") {
+      if (PRODUCTION_MEDIA) {
+        return json(res, 403, {
+          ok: false,
+          message:
+            "Media rebuild is disabled in production. Deploy pre-generated media-optimized files instead.",
+        });
+      }
       scheduleRebuild("API rebuild");
       return json(res, 202, { ok: true, message: "Media rebuild scheduled" });
     }
@@ -590,36 +784,74 @@ async function requestHandler(req, res) {
 async function start() {
   await ensureDirs();
 
-  if (!sharp || !chokidar) {
-    console.error("\n❌ Missing npm packages. Run this inside happy-birthday-backend:\n   npm install\n");
-    process.exit(1);
+  // Render production mode uses media that has already been optimized locally.
+  // No Sharp/FFmpeg conversion and no watcher are needed on the server.
+  if (PRODUCTION_MEDIA) {
+    await loadExistingManifest();
+
+    if (!state.manifest.items.length) {
+      console.warn(
+        "\n⚠️ Production mode is enabled, but media-optimized/manifest.json has no items.\n" +
+          "   Make sure media-optimized/images, media-optimized/videos and manifest.json are committed to GitHub.\n",
+      );
+    }
+  } else {
+    if (!sharp || !chokidar) {
+      console.error(
+        "\n❌ Missing npm packages. Run this inside happy-birthday-backend:\n   npm install\n",
+      );
+      process.exit(1);
+    }
   }
 
   const server = http.createServer(requestHandler);
+
   server.listen(PORT, HOST, () => {
-    console.log("\n============================================================");
+    console.log(
+      "\n============================================================",
+    );
     console.log("🎁 HAPPY BIRTHDAY MEMORY BOOK");
-    console.log(`🌐 Website: http://localhost:${PORT}`);
-    console.log(`📁 Put originals here: ${RAW_ROOT}`);
-    console.log("🪄 Images -> WebP | Videos -> MP4 H.264/AAC");
-    console.log("============================================================\n");
+    console.log(`🌐 Listening on ${HOST}:${PORT}`);
+
+    if (PRODUCTION_MEDIA) {
+      console.log("🚀 Mode: RENDER / PRODUCTION");
+      console.log("📦 Serving existing media-optimized files");
+      console.log("🚫 Automatic media conversion disabled");
+      console.log("🚫 media-original watcher disabled");
+    } else {
+      console.log("💻 Mode: LOCAL DEVELOPMENT");
+      console.log(`📁 Put originals here: ${RAW_ROOT}`);
+      console.log("🪄 Images -> WebP | Videos -> MP4 H.264/AAC");
+    }
+
+    console.log(
+      "============================================================\n",
+    );
   });
 
-  // Convert existing files immediately. The web server stays available while this runs.
-  rebuildMedia("startup").catch(() => {});
+  // Render must not rebuild from media-original because originals are intentionally
+  // not deployed. Rebuilding with an empty originals folder would erase optimized media.
+  if (PRODUCTION_MEDIA) {
+    return;
+  }
+
+  rebuildMedia("startup").catch((error) => {
+    console.error("Initial media rebuild failed:", error.message);
+  });
 
   const watcher = chokidar.watch(RAW_ROOT, {
     ignoreInitial: true,
-    awaitWriteFinish: { stabilityThreshold: 1500, pollInterval: 200 }
+    awaitWriteFinish: { stabilityThreshold: 1500, pollInterval: 200 },
   });
-  watcher.on("add", p => scheduleRebuild(`added ${path.basename(p)}`));
-  watcher.on("change", p => scheduleRebuild(`changed ${path.basename(p)}`));
-  watcher.on("unlink", p => scheduleRebuild(`removed ${path.basename(p)}`));
+
+  watcher.on("add", (p) => scheduleRebuild(`added ${path.basename(p)}`));
+  watcher.on("change", (p) => scheduleRebuild(`changed ${path.basename(p)}`));
+  watcher.on("unlink", (p) => scheduleRebuild(`removed ${path.basename(p)}`));
   watcher.on("addDir", () => scheduleRebuild("folder added"));
   watcher.on("unlinkDir", () => scheduleRebuild("folder removed"));
 }
 
-start().catch(error => {
+start().catch((error) => {
   console.error("Fatal startup error:", error);
   process.exit(1);
 });

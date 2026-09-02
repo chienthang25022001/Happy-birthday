@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Happy Birthday · 3D Memory Book</title>
-  <link rel="stylesheet" href="style.css?v=14.0">
+  <link rel="stylesheet" href="style.css?v=17.2-finale-fit">
   <style>
     /* Critical intro guard: prevents the book flashing before the gift screen. */
     body.intro-active{overflow:hidden!important}
@@ -101,6 +101,11 @@
           <div class="right-base page-base"><div class="base-inner"><span class="small">HAPPY BIRTHDAY</span><h2>Và câu chuyện<br>vẫn còn tiếp tục.</h2><p>Những trang sau là những điều đáng nhớ.</p></div></div>
           <div class="cover" id="cover"><div class="cover-front"><div class="cover-glass"><span class="cover-kicker">25 YEARS OF MEMORIES</span><h1>Happy<br>Birthday!</h1><p id="coverSubtitle">Những khoảnh khắc · video · những lời chúc.</p><span class="cover-scroll">SCROLL TO OPEN ↓</span></div></div><div class="cover-back"><div><span class="small">CHAPTER 01</span><h2>Hôm nay là ngày thật đặc biệt...</h2></div></div></div>
           <div id="sheets"></div>
+          <div id="stableSpread" class="stable-spread" aria-live="polite">
+            <div class="stable-page stable-left" id="stableLeft"></div>
+            <div class="stable-page stable-right" id="stableRight"></div>
+            <div class="stable-flip-overlay" id="stableFlipOverlay" aria-hidden="true"></div>
+          </div>
         </div>
       </div>
       <div class="timeline"><span id="pageCounter">Bìa sinh nhật</span><div class="timeline-track"><span id="timelineBar"></span></div><span id="stageCounter">0 / 0</span></div>
@@ -164,6 +169,6 @@
     <small>Và câu chuyện vẫn còn tiếp tục...</small>
   </div>
 
-  <script src="app.js?v=14.0"></script>
+  <script src="app.js?v=17.2-finale-fit"></script>
 </body>
 </html>
