@@ -1545,3 +1545,205 @@ body{transition:background .35s ease!important}
     font-size:7px !important;
   }
 }
+
+/* =========================================================
+   V18 · BRIGHT SKY BLUE × PASTEL PINK FINALE
+   Inspired by the approved bright-blue birthday concept.
+========================================================= */
+.birthday-finale.luxury-finale{
+  background:#69c7f5!important;
+}
+.luxury-finale .finale-backdrop{
+  inset:-5%!important;
+  background:
+    radial-gradient(circle at 16% 18%,rgba(255,255,255,.96) 0,rgba(232,244,255,.72) 13%,transparent 31%),
+    radial-gradient(circle at 84% 18%,rgba(255,207,231,.52) 0,transparent 27%),
+    radial-gradient(circle at 50% 48%,rgba(255,255,255,.72) 0,rgba(178,228,255,.40) 30%,transparent 58%),
+    radial-gradient(circle at 22% 78%,rgba(255,197,224,.40) 0,transparent 27%),
+    radial-gradient(circle at 80% 76%,rgba(157,222,255,.60) 0,transparent 31%),
+    linear-gradient(145deg,#dff4ff 0%,#91d8ff 28%,#54baf0 58%,#b9e7ff 78%,#ffd8e9 118%)!important;
+  filter:saturate(1.04) brightness(1.08)!important;
+}
+.luxury-finale .finale-backdrop:after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(to top,rgba(255,255,255,.24),transparent 30%),
+    repeating-radial-gradient(ellipse at 50% 110%,rgba(255,255,255,.13) 0 1px,transparent 2px 16px);
+  mix-blend-mode:screen;opacity:.65;
+}
+.luxury-finale .finale-rays{opacity:.26!important;filter:brightness(1.5)!important}
+.luxury-finale .orbit-one{
+  border-color:rgba(255,255,255,.58)!important;
+  box-shadow:0 0 58px rgba(255,255,255,.28),inset 0 0 75px rgba(255,204,229,.14)!important;
+}
+.luxury-finale .orbit-two{border-color:rgba(255,199,225,.48)!important}
+.luxury-finale .finale-glow{
+  background:radial-gradient(circle,rgba(255,255,255,.68),rgba(220,243,255,.36) 24%,rgba(255,196,225,.22) 47%,transparent 72%)!important;
+  filter:blur(20px)!important;
+}
+.luxury-finale .finale-date{
+  border-color:rgba(255,255,255,.72)!important;
+  color:#ffffff!important;
+  background:rgba(72,167,222,.18)!important;
+  box-shadow:0 8px 28px rgba(38,132,194,.13),inset 0 1px rgba(255,255,255,.60)!important;
+  text-shadow:0 2px 8px rgba(24,103,157,.30)!important;
+}
+.luxury-finale .finale-crown{color:#fff6c7!important;text-shadow:0 0 14px #fff,0 0 28px rgba(255,210,112,.72)!important}
+.luxury-finale #finaleTitle{
+  filter:drop-shadow(0 10px 20px rgba(35,113,170,.20)) drop-shadow(0 0 22px rgba(255,255,255,.64))!important;
+}
+.luxury-finale #finaleTitle,
+.luxury-finale #finaleTitle span{
+  background:linear-gradient(104deg,#ffffff 0%,#f7fbff 18%,#d8efff 34%,#ffd7e8 57%,#f8b9d4 75%,#ffffff 100%)!important;
+  background-size:250% 100%!important;
+  -webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;
+  -webkit-text-stroke:1px rgba(255,255,255,.28);
+}
+.luxury-finale #finaleSubtitle{
+  color:#245f98!important;
+  text-shadow:0 2px 0 rgba(255,255,255,.62),0 7px 22px rgba(35,115,170,.18)!important;
+}
+.luxury-finale .finale-divider i{
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.92),rgba(255,190,220,.85),transparent)!important;
+}
+.luxury-finale .finale-divider b{
+  color:#fff!important;background:linear-gradient(145deg,#79cfff,#f3b8d3)!important;
+  border-color:rgba(255,255,255,.82)!important;box-shadow:0 0 24px rgba(255,255,255,.48)!important;
+}
+.luxury-finale .finale-message-wrap{
+  background:linear-gradient(115deg,rgba(255,255,255,.94),rgba(104,202,255,.90),rgba(255,181,216,.88),rgba(255,255,255,.94))!important;
+  box-shadow:0 20px 65px rgba(38,126,181,.18),0 0 38px rgba(255,255,255,.50)!important;
+}
+.luxury-finale .finale-message{
+  background:linear-gradient(145deg,rgba(255,255,255,.91),rgba(232,247,255,.88) 52%,rgba(255,239,247,.90))!important;
+  color:#18538b!important;
+  border:1px solid rgba(255,255,255,.82)!important;
+  text-shadow:none!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9)!important;
+}
+.luxury-finale .message-ornament{color:#f49bc3!important;text-shadow:0 0 14px rgba(255,255,255,.8),0 0 20px rgba(244,155,195,.38)!important}
+.luxury-finale #finaleFooter{color:#ffffff!important;text-shadow:0 2px 10px rgba(40,121,177,.36),0 0 14px rgba(255,255,255,.72)!important}
+.luxury-finale .finale-corner-rose{
+  filter:drop-shadow(0 12px 15px rgba(42,116,165,.20)) drop-shadow(0 0 16px rgba(255,255,255,.52))!important;
+  opacity:.92!important;
+}
+.luxury-finale .finale-age{color:rgba(255,255,255,.08)!important;-webkit-text-stroke:1px rgba(255,255,255,.10)!important}
+.luxury-finale .finale-stars{filter:brightness(1.5)!important}
+
+/* Softer pastel atmosphere for the rest of the website too */
+body:before{
+  background:radial-gradient(circle at 18% 18%,#ffd8e9 0,transparent 31%),radial-gradient(circle at 80% 35%,#7ed4ff 0,transparent 34%),linear-gradient(145deg,#78cfff,#e3f5ff 72%)!important;
+}
+.a1{background:#ffc6df!important}.a2{background:#63c9ff!important}
+
+
+/* =========================================================
+   V19 · FORCE BRIGHT BABY-BLUE + PASTEL-PINK FINALE
+   This block intentionally wins over every older dark finale rule.
+========================================================= */
+body.finale-active{
+  background:#9fdcff !important;
+}
+body.finale-active .cinema-vignette,
+body.finale-active .vignette{
+  opacity:.08 !important;
+  background:transparent !important;
+}
+.birthday-finale.luxury-finale,
+.birthday-finale.luxury-finale.show{
+  background:#8ed8ff !important;
+}
+.birthday-finale.luxury-finale .finale-backdrop{
+  inset:-6% !important;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255,255,255,.98) 0 7%, rgba(238,249,255,.86) 15%, transparent 34%),
+    radial-gradient(circle at 86% 16%, rgba(255,214,234,.82) 0 8%, transparent 30%),
+    radial-gradient(circle at 50% 40%, rgba(255,255,255,.64) 0 10%, rgba(188,231,255,.52) 30%, transparent 58%),
+    radial-gradient(circle at 18% 78%, rgba(255,205,229,.58) 0 7%, transparent 28%),
+    radial-gradient(circle at 82% 76%, rgba(189,234,255,.72) 0 8%, transparent 30%),
+    linear-gradient(145deg,#eaf8ff 0%,#bfeaff 18%,#80cff8 43%,#57b9ef 63%,#abdfff 82%,#ffd4e6 112%) !important;
+  filter:brightness(1.18) saturate(1.02) !important;
+  opacity:1 !important;
+}
+.birthday-finale.luxury-finale .finale-backdrop::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 50% 100%, rgba(255,255,255,.50), transparent 45%),
+    linear-gradient(to bottom,rgba(255,255,255,.10),rgba(255,255,255,.24));
+  mix-blend-mode:screen;
+}
+.birthday-finale.luxury-finale .finale-backdrop::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,rgba(255,255,255,.08),transparent 20%,transparent 80%,rgba(255,214,234,.12));
+  opacity:1 !important;
+}
+.birthday-finale.luxury-finale .finale-rays{
+  opacity:.22 !important;
+  filter:brightness(2) !important;
+}
+.birthday-finale.luxury-finale .finale-glow{
+  opacity:.86 !important;
+  background:radial-gradient(circle,rgba(255,255,255,.90),rgba(225,246,255,.58) 23%,rgba(255,211,232,.32) 46%,transparent 72%) !important;
+}
+.birthday-finale.luxury-finale .orbit-one,
+.birthday-finale.luxury-finale .orbit-two{
+  border-color:rgba(255,255,255,.48) !important;
+}
+.birthday-finale.luxury-finale #finaleTitle,
+.birthday-finale.luxury-finale #finaleTitle span,
+.birthday-finale.luxury-finale #finaleTitle .finale-name{
+  background:linear-gradient(105deg,#ffffff 0%,#ffffff 18%,#dff4ff 36%,#ffd7e9 58%,#f7b6d3 75%,#ffffff 100%) !important;
+  background-size:260% 100% !important;
+  -webkit-background-clip:text !important;
+  background-clip:text !important;
+  color:transparent !important;
+  -webkit-text-fill-color:transparent !important;
+  -webkit-text-stroke:.7px rgba(255,255,255,.45) !important;
+  text-shadow:none !important;
+  filter:drop-shadow(0 7px 15px rgba(33,117,173,.17)) drop-shadow(0 0 18px rgba(255,255,255,.70)) !important;
+}
+.birthday-finale.luxury-finale #finaleSubtitle{
+  color:#2b6da4 !important;
+  -webkit-text-fill-color:#2b6da4 !important;
+  text-shadow:0 2px 0 rgba(255,255,255,.78),0 6px 18px rgba(36,113,169,.13) !important;
+}
+.birthday-finale.luxury-finale .finale-message-wrap{
+  background:linear-gradient(115deg,#ffffff,#7ed3ff,#ffc2dc,#ffffff) !important;
+  box-shadow:0 18px 50px rgba(47,128,181,.18),0 0 26px rgba(255,255,255,.62) !important;
+}
+.birthday-finale.luxury-finale .finale-message{
+  background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(235,248,255,.95) 55%,rgba(255,239,247,.96)) !important;
+  color:#245f93 !important;
+  -webkit-text-fill-color:#245f93 !important;
+  border:1px solid rgba(255,255,255,.96) !important;
+  text-shadow:none !important;
+  backdrop-filter:blur(8px) !important;
+  -webkit-backdrop-filter:blur(8px) !important;
+}
+.birthday-finale.luxury-finale .finale-date{
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
+  background:rgba(83,182,235,.24) !important;
+  border-color:rgba(255,255,255,.82) !important;
+}
+.birthday-finale.luxury-finale .finale-divider b{
+  background:linear-gradient(145deg,#78d1ff,#f7b8d4) !important;
+  color:#fff !important;
+  -webkit-text-fill-color:#fff !important;
+  border-color:rgba(255,255,255,.90) !important;
+}
+.birthday-finale.luxury-finale .finale-divider i{
+  background:linear-gradient(90deg,transparent,#fff,#f4bad4,transparent) !important;
+}
+.birthday-finale.luxury-finale #finaleFooter{
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
+  text-shadow:0 2px 10px rgba(37,110,160,.28),0 0 10px rgba(255,255,255,.72) !important;
+}
+.birthday-finale.luxury-finale .message-ornament{
+  color:#f49bc2 !important;
+}
+.birthday-finale.luxury-finale .finale-age{
+  color:rgba(255,255,255,.10) !important;
+  -webkit-text-fill-color:rgba(255,255,255,.10) !important;
+}
