@@ -1,174 +1,259 @@
 <!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Happy Birthday · 3D Memory Book</title>
-  <link rel="stylesheet" href="style.css?v=17.2-finale-fit">
-  <style>
-    /* Critical intro guard: prevents the book flashing before the gift screen. */
-    body.intro-active{overflow:hidden!important}
-    body.intro-active #story{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
-    #giftIntro{position:fixed!important;inset:0!important;z-index:99999!important;display:grid!important;place-items:center!important;opacity:1;visibility:visible}
-    body.preloading #giftIntro{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
-    #giftIntro.leave{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
-  </style>
-</head>
-<body class="intro-active preloading">
-
-  <!-- V5 preload screen: the story is revealed only after media is prepared -->
-  <section class="preload-screen" id="preloadScreen" aria-live="polite" aria-label="Đang chuẩn bị kỷ niệm">
-    <div class="preload-ambient"></div>
-    <div class="preload-card">
-      <div class="preload-heart">♥</div>
-      <span class="preload-kicker">PREPARING OUR MEMORIES</span>
-      <h1>Đang chuẩn bị<br>những kỷ niệm...</h1>
-      <div class="preload-track"><i id="preloadBar"></i></div>
-      <div class="preload-row">
-        <strong id="preloadPercent">0%</strong>
-        <span id="preloadStatus">Đang kiểm tra ảnh và video</span>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Happy Birthday · 3D Memory Book</title>
+    <link rel="stylesheet" href="style.css?v=19-force-bright" />
+    <style>
+      /* Critical intro guard: prevents the book flashing before the gift screen. */
+      body.intro-active {
+        overflow: hidden !important;
+      }
+      body.intro-active #story {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+      #giftIntro {
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 99999 !important;
+        display: grid !important;
+        place-items: center !important;
+        opacity: 1;
+        visibility: visible;
+      }
+      body.preloading #giftIntro {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+      #giftIntro.leave {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+    </style>
+  </head>
+  <body class="intro-active preloading">
+    <!-- V5 preload screen: the story is revealed only after media is prepared -->
+    <section
+      class="preload-screen"
+      id="preloadScreen"
+      aria-live="polite"
+      aria-label="Đang chuẩn bị kỷ niệm"
+    >
+      <div class="preload-ambient"></div>
+      <div class="preload-card">
+        <div class="preload-heart">♥</div>
+        <span class="preload-kicker">PREPARING OUR MEMORIES</span>
+        <h1>Đang chuẩn bị<br />những kỷ niệm...</h1>
+        <div class="preload-track"><i id="preloadBar"></i></div>
+        <div class="preload-row">
+          <strong id="preloadPercent">0%</strong>
+          <span id="preloadStatus">Đang kiểm tra ảnh và video</span>
+        </div>
+        <small id="preloadDetail">Vui lòng chờ một chút ✨</small>
       </div>
-      <small id="preloadDetail">Vui lòng chờ một chút ✨</small>
-    </div>
-  </section>
+    </section>
 
-  <canvas id="stars" aria-hidden="true"></canvas>
-  <canvas id="fireworks" aria-hidden="true"></canvas>
-  <div class="aurora a1"></div><div class="aurora a2"></div>
-  <div class="bokeh-layer" id="bokehLayer" aria-hidden="true"></div>
-  <div class="chapter-flash" id="chapterFlash" aria-hidden="true"></div>
-  <section class="year-portal" id="yearPortal" aria-hidden="true">
-    <div class="year-portal-glow"></div>
-    <div class="year-portal-ring ring-a"></div>
-    <div class="year-portal-ring ring-b"></div>
-    <div class="year-portal-stars" id="yearPortalStars"></div>
-    <div class="year-portal-copy">
-      <span class="year-portal-kicker">CHAPTER OF MEMORIES</span>
-      <strong id="yearPortalNumber">2021</strong>
-      <p id="yearPortalText">Một năm, một chương ký ức.</p>
-      <i>SCROLL TO CONTINUE ↓</i>
-    </div>
-  </section>
-  <div class="vignette"></div>
-  <div class="progress"><span id="progressBar"></span></div>
-
-  <!-- INTRO: only this is visible when the website opens -->
-  <section class="gift-intro" id="giftIntro" aria-label="Mở quà sinh nhật">
-    <div class="gift-glow" aria-hidden="true"></div>
-    <div class="gift-intro-inner">
-      <div class="intro-eyebrow">A LITTLE SURPRISE FOR YOU</div>
-
-      <button class="gift-box" id="openGift" type="button" aria-label="Mở hộp quà">
-        <span class="gift-shadow"></span>
-        <span class="gift-lid">
-          <span class="gift-bow bow-left"></span>
-          <span class="gift-bow bow-right"></span>
-          <span class="gift-ribbon-v"></span>
-        </span>
-        <span class="gift-body"><span class="gift-ribbon-v"></span><span class="gift-ribbon-h"></span></span>
-      </button>
-
-      <div class="gift-prompt" id="giftPrompt">Nhấn vào hộp quà để mở ✨</div>
-
-      <div class="intro-story" id="introStory" aria-live="polite">
-        <div class="intro-step" data-step="birth">
-          <span class="intro-small">THE DAY THE STORY BEGAN</span>
-          <strong>03 · 09 · 2001</strong>
-        </div>
-        <div class="intro-step" data-step="today">
-          <span class="intro-small">AND TODAY...</span>
-          <strong>03 · 09 · 2026</strong>
-        </div>
-        <div class="intro-step age-step" data-step="age">
-          <span class="age-number">25</span>
-          <span class="age-word">TUỔI</span>
-        </div>
-        <div class="intro-step" data-step="memory">
-          <span class="intro-small">25 YEARS · COUNTLESS MEMORIES</span>
-          <strong class="memory-title">Và đây là một vài kỷ niệm...</strong>
-        </div>
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <canvas id="fireworks" aria-hidden="true"></canvas>
+    <div class="aurora a1"></div>
+    <div class="aurora a2"></div>
+    <div class="bokeh-layer" id="bokehLayer" aria-hidden="true"></div>
+    <div class="chapter-flash" id="chapterFlash" aria-hidden="true"></div>
+    <section class="year-portal" id="yearPortal" aria-hidden="true">
+      <div class="year-portal-glow"></div>
+      <div class="year-portal-ring ring-a"></div>
+      <div class="year-portal-ring ring-b"></div>
+      <div class="year-portal-stars" id="yearPortalStars"></div>
+      <div class="year-portal-copy">
+        <span class="year-portal-kicker">CHAPTER OF MEMORIES</span>
+        <strong id="yearPortalNumber">2021</strong>
+        <p id="yearPortalText">Một năm, một chương ký ức.</p>
+        <i>SCROLL TO CONTINUE ↓</i>
       </div>
-    </div>
-  </section>
+    </section>
+    <div class="vignette"></div>
+    <div class="progress"><span id="progressBar"></span></div>
 
-  <main id="story" class="story-hidden">
-    <section class="book-stage">
-      <div class="chapter-pill" id="chapterPill">HAPPY BIRTHDAY · NHỮNG KỶ NIỆM</div>
-      <div class="book-wrap" id="bookWrap">
-        <div class="book" id="book">
-          <div class="book-shadow"></div><div class="book-spine"></div>
-          <div class="left-base page-base"><div class="base-inner"><span class="small">A BIRTHDAY BOOK</span><h2>Một tuổi mới.<br>Thật nhiều yêu thương.</h2><p>Cuộn xuống để mở từng kỷ niệm.</p></div></div>
-          <div class="right-base page-base"><div class="base-inner"><span class="small">HAPPY BIRTHDAY</span><h2>Và câu chuyện<br>vẫn còn tiếp tục.</h2><p>Những trang sau là những điều đáng nhớ.</p></div></div>
-          <div class="cover" id="cover"><div class="cover-front"><div class="cover-glass"><span class="cover-kicker">25 YEARS OF MEMORIES</span><h1>Happy<br>Birthday!</h1><p id="coverSubtitle">Những khoảnh khắc · video · những lời chúc.</p><span class="cover-scroll">SCROLL TO OPEN ↓</span></div></div><div class="cover-back"><div><span class="small">CHAPTER 01</span><h2>Hôm nay là ngày thật đặc biệt...</h2></div></div></div>
-          <div id="sheets"></div>
-          <div id="stableSpread" class="stable-spread" aria-live="polite">
-            <div class="stable-page stable-left" id="stableLeft"></div>
-            <div class="stable-page stable-right" id="stableRight"></div>
-            <div class="stable-flip-overlay" id="stableFlipOverlay" aria-hidden="true"></div>
+    <!-- INTRO: only this is visible when the website opens -->
+    <section class="gift-intro" id="giftIntro" aria-label="Mở quà sinh nhật">
+      <div class="gift-glow" aria-hidden="true"></div>
+      <div class="gift-intro-inner">
+        <div class="intro-eyebrow">A LITTLE SURPRISE FOR YOU</div>
+
+        <button
+          class="gift-box"
+          id="openGift"
+          type="button"
+          aria-label="Mở hộp quà"
+        >
+          <span class="gift-shadow"></span>
+          <span class="gift-lid">
+            <span class="gift-bow bow-left"></span>
+            <span class="gift-bow bow-right"></span>
+            <span class="gift-ribbon-v"></span>
+          </span>
+          <span class="gift-body"
+            ><span class="gift-ribbon-v"></span
+            ><span class="gift-ribbon-h"></span
+          ></span>
+        </button>
+
+        <div class="gift-prompt" id="giftPrompt">Nhấn vào hộp quà để mở ✨</div>
+
+        <div class="intro-story" id="introStory" aria-live="polite">
+          <div class="intro-step" data-step="birth">
+            <span class="intro-small">THE DAY THE STORY BEGAN</span>
+            <strong>03 · 09 · 2001</strong>
+          </div>
+          <div class="intro-step" data-step="today">
+            <span class="intro-small">AND TODAY...</span>
+            <strong>03 · 09 · 2026</strong>
+          </div>
+          <div class="intro-step age-step" data-step="age">
+            <span class="age-number">25</span>
+            <span class="age-word">TUỔI</span>
+          </div>
+          <div class="intro-step" data-step="memory">
+            <span class="intro-small">25 YEARS · COUNTLESS MEMORIES</span>
+            <strong class="memory-title">Và đây là một vài kỷ niệm...</strong>
           </div>
         </div>
       </div>
-      <div class="timeline"><span id="pageCounter">Bìa sinh nhật</span><div class="timeline-track"><span id="timelineBar"></span></div><span id="stageCounter">0 / 0</span></div>
-      <div class="scroll-hint"><span>SCROLL · OR USE BUTTONS</span><i></i></div>
-      <nav class="book-nav" id="bookNav" aria-label="Điều hướng kỷ niệm">
-        <button id="prevPageBtn" type="button" aria-label="Trang trước">
-          <span class="nav-arrow">←</span><span class="nav-label">Trước</span>
-        </button>
-        <span class="nav-progress" id="navProgress">BÌA</span>
-        <button id="nextPageBtn" type="button" aria-label="Trang tiếp theo">
-          <span class="nav-label">Tiếp</span><span class="nav-arrow">→</span>
-        </button>
-      </nav>
     </section>
-  </main>
 
-  <!-- V14 LUXURY CINEMATIC FINALE -->
-  <section class="birthday-finale luxury-finale" id="birthdayFinale" aria-hidden="true">
-    <div class="finale-backdrop" aria-hidden="true"></div>
-    <div class="finale-rays" aria-hidden="true"></div>
-    <div class="finale-orbit orbit-one" aria-hidden="true"></div>
-    <div class="finale-orbit orbit-two" aria-hidden="true"></div>
-    <div class="finale-glow" aria-hidden="true"></div>
-    <div class="finale-stars" id="finaleStars" aria-hidden="true"></div>
-    <div class="finale-confetti" id="finaleConfetti" aria-hidden="true"></div>
-    <div class="rose-rain" id="roseRain" aria-hidden="true"></div>
+    <main id="story" class="story-hidden">
+      <section class="book-stage">
+        <div class="chapter-pill" id="chapterPill">
+          HAPPY BIRTHDAY · NHỮNG KỶ NIỆM
+        </div>
+        <div class="book-wrap" id="bookWrap">
+          <div class="book" id="book">
+            <div class="book-shadow"></div>
+            <div class="book-spine"></div>
+            <div class="left-base page-base">
+              <div class="base-inner">
+                <span class="small">A BIRTHDAY BOOK</span>
+                <h2>Một tuổi mới.<br />Thật nhiều yêu thương.</h2>
+                <p>Cuộn xuống để mở từng kỷ niệm.</p>
+              </div>
+            </div>
+            <div class="right-base page-base">
+              <div class="base-inner">
+                <span class="small">HAPPY BIRTHDAY</span>
+                <h2>Và câu chuyện<br />vẫn còn tiếp tục.</h2>
+                <p>Những trang sau là những điều đáng nhớ.</p>
+              </div>
+            </div>
+            <div class="cover" id="cover">
+              <div class="cover-front">
+                <div class="cover-glass">
+                  <span class="cover-kicker">25 YEARS OF MEMORIES</span>
+                  <h1>Happy<br />Birthday!</h1>
+                  <p id="coverSubtitle">
+                    Những khoảnh khắc · video · những lời chúc.
+                  </p>
+                  <span class="cover-scroll">SCROLL TO OPEN ↓</span>
+                </div>
+              </div>
+              <div class="cover-back">
+                <div>
+                  <span class="small">CHAPTER 01</span>
+                  <h2>Hôm nay là ngày thật đặc biệt...</h2>
+                </div>
+              </div>
+            </div>
+            <div id="sheets"></div>
+            <div id="stableSpread" class="stable-spread" aria-live="polite">
+              <div class="stable-page stable-left" id="stableLeft"></div>
+              <div class="stable-page stable-right" id="stableRight"></div>
+              <div
+                class="stable-flip-overlay"
+                id="stableFlipOverlay"
+                aria-hidden="true"
+              ></div>
+            </div>
+          </div>
+        </div>
+        <div class="timeline">
+          <span id="pageCounter">Bìa sinh nhật</span>
+          <div class="timeline-track"><span id="timelineBar"></span></div>
+          <span id="stageCounter">0 / 0</span>
+        </div>
+        <div class="scroll-hint">
+          <span>SCROLL · OR USE BUTTONS</span><i></i>
+        </div>
+        <nav class="book-nav" id="bookNav" aria-label="Điều hướng kỷ niệm">
+          <button id="prevPageBtn" type="button" aria-label="Trang trước">
+            <span class="nav-arrow">←</span><span class="nav-label">Trước</span>
+          </button>
+          <span class="nav-progress" id="navProgress">BÌA</span>
+          <button id="nextPageBtn" type="button" aria-label="Trang tiếp theo">
+            <span class="nav-label">Tiếp</span><span class="nav-arrow">→</span>
+          </button>
+        </nav>
+      </section>
+    </main>
 
-    <div class="finale-corner-rose rose-tl" aria-hidden="true">🌹</div>
-    <div class="finale-corner-rose rose-tr" aria-hidden="true">🌹</div>
-    <div class="finale-corner-rose rose-bl" aria-hidden="true">🌹</div>
-    <div class="finale-corner-rose rose-br" aria-hidden="true">🌹</div>
+    <!-- V14 LUXURY CINEMATIC FINALE -->
+    <section
+      class="birthday-finale luxury-finale"
+      id="birthdayFinale"
+      aria-hidden="true"
+    >
+      <div class="finale-backdrop" aria-hidden="true"></div>
+      <div class="finale-rays" aria-hidden="true"></div>
+      <div class="finale-orbit orbit-one" aria-hidden="true"></div>
+      <div class="finale-orbit orbit-two" aria-hidden="true"></div>
+      <div class="finale-glow" aria-hidden="true"></div>
+      <div class="finale-stars" id="finaleStars" aria-hidden="true"></div>
+      <div class="finale-confetti" id="finaleConfetti" aria-hidden="true"></div>
+      <div class="rose-rain" id="roseRain" aria-hidden="true"></div>
 
-    <div class="birthday-finale-copy">
-      <div class="finale-age" aria-hidden="true">25</div>
-      <span class="finale-date">03 · 09 · 2026</span>
-      <div class="finale-crown" aria-hidden="true">✦　◇　✦</div>
+      <div class="finale-corner-rose rose-tl" aria-hidden="true">🌹</div>
+      <div class="finale-corner-rose rose-tr" aria-hidden="true">🌹</div>
+      <div class="finale-corner-rose rose-bl" aria-hidden="true">🌹</div>
+      <div class="finale-corner-rose rose-br" aria-hidden="true">🌹</div>
 
-      <h2 id="finaleTitle" aria-label="Happy Birthday Bé Thơm">
-        <span>HAPPY</span>
-        <span>BIRTHDAY</span>
-        <span class="finale-name">BÉ THƠM</span>
-      </h2>
+      <div class="birthday-finale-copy">
+        <div class="finale-age" aria-hidden="true">25</div>
+        <span class="finale-date">03 · 09 · 2026</span>
+        <div class="finale-crown" aria-hidden="true">✦　◇　✦</div>
 
-      <div class="finale-divider"><i></i><b>25</b><i></i></div>
-      <p id="finaleSubtitle">Chúc em tuổi 25 thật rực rỡ 🌹</p>
+        <h2 id="finaleTitle" aria-label="Happy Birthday Bé Thơm">
+          <span>HAPPY</span>
+          <span>BIRTHDAY</span>
+          <span class="finale-name">BÉ THƠM</span>
+        </h2>
 
-      <div class="finale-message-wrap">
-        <span class="message-ornament ornament-left" aria-hidden="true">❦</span>
-        <div class="finale-message" id="finaleMessage"></div>
-        <span class="message-ornament ornament-right" aria-hidden="true">❦</span>
+        <div class="finale-divider"><i></i><b>25</b><i></i></div>
+        <p id="finaleSubtitle">Chúc em tuổi 25 thật rực rỡ 🌹</p>
+
+        <div class="finale-message-wrap">
+          <span class="message-ornament ornament-left" aria-hidden="true"
+            >❦</span
+          >
+          <div class="finale-message" id="finaleMessage"></div>
+          <span class="message-ornament ornament-right" aria-hidden="true"
+            >❦</span
+          >
+        </div>
+
+        <div class="finale-signature" id="finaleFooter">WITH LOVE · ALWAYS</div>
       </div>
+    </section>
 
-      <div class="finale-signature" id="finaleFooter">WITH LOVE · ALWAYS</div>
+    <!-- Lightweight ending: no modal/popup, no backdrop blur -->
+    <div class="ending-toast" id="endingToast" aria-hidden="true">
+      <span>03 · 09 · 2026</span>
+      <strong>HAPPY 25TH BIRTHDAY ✨</strong>
+      <small>Và câu chuyện vẫn còn tiếp tục...</small>
     </div>
-  </section>
 
-  <!-- Lightweight ending: no modal/popup, no backdrop blur -->
-  <div class="ending-toast" id="endingToast" aria-hidden="true">
-    <span>03 · 09 · 2026</span>
-    <strong>HAPPY 25TH BIRTHDAY ✨</strong>
-    <small>Và câu chuyện vẫn còn tiếp tục...</small>
-  </div>
-
-  <script src="app.js?v=17.2-finale-fit"></script>
-</body>
+    <script src="app.js?v=17.2-finale-fit"></script>
+  </body>
 </html>
